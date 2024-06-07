@@ -17,13 +17,17 @@ builder.Services.AddCors(options => {
     });
 });
 
+// ログにOpenTelemetryを使用する様に追加
 builder.Logging.AddOpenTelemetry(x =>
 {
     x.IncludeScopes = true;
     x.IncludeFormattedMessage = true;
 });
+
+// Add OpenTelemetry with Azure Monitor
 builder.Services.AddOpenTelemetry()
     .UseAzureMonitor()
+    // トレーシングの設定
     .WithTracing(tracing =>
     {
         tracing.AddAspNetCoreInstrumentation()
