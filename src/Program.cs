@@ -1,3 +1,6 @@
+using Azure.Monitor.OpenTelemetry.AspNetCore;
+using OpenTelemetry.Trace;
+
 var builder = WebApplication.CreateBuilder();
 
 // Add services to the container.
@@ -13,6 +16,19 @@ builder.Services.AddCors(options => {
         builder.AllowAnyMethod();
     });
 });
+
+builder.Logging.AddOpenTelemetry(x =>
+{
+    x.IncludeScopes = true;
+    x.IncludeFormattedMessage = true;
+});
+builder.Services.AddOpenTelemetry()
+    .UseAzureMonitor()
+    .WithTracing(tracing =>
+    {
+        tracing.AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation();
+    });
 
 var app = builder.Build();
 
@@ -32,6 +48,7 @@ app.MapGet("/", async context =>
 
 app.MapGet("/albums", () =>
 {
+    app.Logger.LogInformation("Getting albums");
     return Album.GetAll();
 })
 .WithName("GetAlbums");
